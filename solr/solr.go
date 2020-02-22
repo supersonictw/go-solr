@@ -211,6 +211,14 @@ func (si *SolrInterface) Update(data interface{}, params *url.Values) (*SolrUpda
 	return si.conn.Update(data, params)
 }
 
+// UpdateDoc take data of type interface{} to upload single document directly
+func (si *SolrInterface) UpdateDoc(data interface{}) (*SolrUpdateResponse, error) {
+	if si.conn == nil {
+		return nil, fmt.Errorf("No connection found for making request to solr")
+	}
+	return si.conn.UpdateDoc(data)
+}
+
 // Commit the changes since the last commit
 func (si *SolrInterface) Commit() (*SolrUpdateResponse, error) {
 	params := &url.Values{}

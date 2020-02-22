@@ -11,7 +11,7 @@ import (
 	"time"
 )
 
-var userAgent = fmt.Sprintf("Go-solr/%s (+https://github.com/vanng822/go-solr)", VERSION)
+var userAgent = fmt.Sprintf("Butterfly-Solr/%s (+https://github.com/supersonictw/butterfly-solr)", VERSION)
 
 var transport = http.Transport{}
 
@@ -190,6 +190,32 @@ func (c *Connection) Update(data interface{}, params *url.Values) (*SolrUpdateRe
 	params.Set("wt", "json")
 
 	r, err := HTTPPost(fmt.Sprintf("%s/%s/update/?%s", c.url.String(), c.core, params.Encode()), b, [][]string{{"Content-Type", "application/json"}}, c.username, c.password, c.timeout)
+
+	if err != nil {
+		return nil, err
+	}
+	resp, err := bytes2json(&r)
+	if err != nil {
+		return nil, err
+	}
+	// check error in resp
+	if !successStatus(resp) || hasError(resp) {
+		return &SolrUpdateResponse{Success: false, Result: resp}, nil
+	}
+
+	return &SolrUpdateResponse{Success: true, Result: resp}, nil
+}
+
+// UpdateDoc take data of type interface{} to upload single document directly
+func (c *Connection) UpdateDoc(data interface{}) (*SolrUpdateResponse, error) {
+
+	b, err := json2bytes(data)
+
+	if err != nil {
+		return nil, err
+	}
+
+	r, err := HTTPPost(fmt.Sprintf("%s/%s/update/json/docs", c.url.String(), c.core), b, [][]string{{"Content-Type", "application/json"}}, c.username, c.password, c.timeout)
 
 	if err != nil {
 		return nil, err
